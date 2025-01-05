@@ -22,6 +22,7 @@ public class TelegramBotMessageServiceImpl implements TelegramBotMessageService 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
     private final Pattern pattern = Pattern.compile("(\\d{2}\\.\\d{2}\\.\\d{4}\\s\\d{2}:\\d{2})(\\s+)(.+)");
 
+    @Override
     public String getStartMessage() {
         return "Приветствуем в нашем боте расписаний \"Адептус Астартес *Мастер Титутс*!\"\n" +
                 "Орден Ультрамаринов Вас! Введите дату и время - и мы напомним Вам о событии!\n\n" +
@@ -30,10 +31,12 @@ public class TelegramBotMessageServiceImpl implements TelegramBotMessageService 
                 "01.01.2025 20:00 Сделать домашнюю работу";
     }
 
+    @Override
     public String getHelpMessage() {
         return "Доступные команды:\n/start - Начало работы с ботом\n/help - Список доступных команд\n/pray - инструкция для Адептус Механикус";
     }
 
+    @Override
     public String getMechanicMessage() {
         return "Пришло время славить Бога Машины ! \nБог Машины сам себя не восславит, восславь его ещё раз.\n" +
                 "Зачем мне нужна бренная плоть, у меня нет времени чтобы бегать по нужде каждые полтора дня,\n" +
@@ -51,6 +54,7 @@ public class TelegramBotMessageServiceImpl implements TelegramBotMessageService 
                 "Спокойствие... ... \"Егда желаеши глаголать чистою речью, да глаголеши бинарно\"\n- Изречения князей 65.4";
     }
 
+    @Override
     public String processMessage(String chatId, String messageText) {
         Matcher matcher = pattern.matcher(messageText);
         if (matcher.matches()) {
