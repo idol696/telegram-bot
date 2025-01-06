@@ -24,7 +24,7 @@ class TelegramBotApplicationTests {
 		assertNotNull(applicationContext.getBean("telegramBotUpdatesListener"), "TelegramBotUpdatesListener должен быть загружен.");
 		assertNotNull(applicationContext.getBean("notificationTaskRepository"), "NotificationTaskRepository должен быть загружен.");
 		assertNotNull(applicationContext.getBean("notificationScheduler"), "NotificationScheduler должен быть загружен.");
-		assertNotNull(applicationContext.getBean("telegramBotMessageService"), "TelegramBotMessageService должен быть загружен.");
+		assertNotNull(applicationContext.getBean("telegramBotMessageServiceImpl"), "TelegramBotMessageService должен быть загружен.");
 	}
 
 	@Test
