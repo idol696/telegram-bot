@@ -34,64 +34,35 @@ class TelegramBotUpdatesListenerTest {
         MockitoAnnotations.openMocks(this);
     }
 
+    static final String ID_VERIFY = "123456";
+    static final String CORRECT_COMMAND_VERIFY = "/start";
+
+
     /** ТЕСТИРУЕМ КОРРЕКТНОСТЬ КОММАНД, ИХ ОТПРАВКУ ЧЕРЕЗ МОКИ И РЕАКЦИЮ ЛИСТЕНЕРА **/
 
     @Test
-    void process_ShouldHandleStartCommand() {
-        Update update = mockUpdate("/start", 123456L);
+    void process_ShouldHandleCommand() {
+        Update update = mockUpdate(CORRECT_COMMAND_VERIFY);
         String expectedMessage = "Приветственное сообщение";
 
-        when(messageService.getStartMessage()).thenReturn(expectedMessage);
-
-        listener.process(Collections.singletonList(update)); // Проба синглтона)
-
-        verifySendMessage("123456", expectedMessage);
-    }
-
-    @Test
-    void process_ShouldHandlePrayCommand() {
-        Update update = mockUpdate("/pray", 123456L);
-        String expectedMessage = "Молитва механикус";
-
-        when(messageService.getMechanicMessage()).thenReturn(expectedMessage);
+        when(messageService.getCommandMessage(CORRECT_COMMAND_VERIFY)).thenReturn(expectedMessage);
 
         listener.process(Collections.singletonList(update));
 
-        verifySendMessage("123456", expectedMessage);
+        verifySendMessage(ID_VERIFY, expectedMessage);
     }
 
-    @Test
-    void process_ShouldHandleHelpCommand() {
-        Update update = mockUpdate("/help", 123456L);
-        String expectedMessage = "Хелп";
-
-        when(messageService.getHelpMessage()).thenReturn(expectedMessage);
-
-        listener.process(Collections.singletonList(update));
-
-        verifySendMessage("123456", expectedMessage);
-    }
-
-    @Test
-    void process_ShouldHandleUnknownCommand() {
-        Update update = mockUpdate("/unknown", 123456L);
-        String expectedMessage = "Неизвестная команда. Используйте /help для списка доступных команд.";
-
-        listener.process(Collections.singletonList(update));
-
-        verifySendMessage("123456", expectedMessage);
-    }
 
     @Test
     void process_ShouldHandleMessageProcessing() {
-        Update update = mockUpdate("01.01.2025 20:00 Сделать домашнюю работу", 123456L);
+        Update update = mockUpdate("01.01.2025 20:00 Сделать домашнюю работу");
         String expectedMessage = "Задача успешно сохранена";
 
-        when(messageService.processMessage("123456", "01.01.2025 20:00 Сделать домашнюю работу")).thenReturn(expectedMessage);
+        when(messageService.processMessage(ID_VERIFY, "01.01.2025 20:00 Сделать домашнюю работу")).thenReturn(expectedMessage);
 
         listener.process(Collections.singletonList(update));
 
-        verifySendMessage("123456", expectedMessage);
+        verifySendMessage(ID_VERIFY, expectedMessage);
     }
 
     // Общий метод для проверки отправленных сообщений. Применяем ArgumentCaptor - ловим аргументы для мока
@@ -105,7 +76,7 @@ class TelegramBotUpdatesListenerTest {
     }
 
     // Мокируем Update
-    private Update mockUpdate(String text, long chatId) {
+    private Update mockUpdate(String text) {
         Update update = mock(Update.class);
         Message message = mock(Message.class);
         Chat chat = mock(Chat.class);
@@ -113,7 +84,7 @@ class TelegramBotUpdatesListenerTest {
         when(update.message()).thenReturn(message);
         when(message.text()).thenReturn(text);
         when(message.chat()).thenReturn(chat);
-        when(chat.id()).thenReturn(chatId);
+        when(chat.id()).thenReturn(123456L);
 
         return update;
     }

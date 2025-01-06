@@ -29,7 +29,7 @@ class NotificationTaskRepositoryTest {
 
         repository.save(task);
 
-        List<NotificationTask> tasks = repository.findByNotificationDatetimeBefore(LocalDateTime.now());
+        List<NotificationTask> tasks = repository.findByNotificationDatetimeBeforeAndChangedFalse(LocalDateTime.now());
 
         assertEquals(1, tasks.size());
         assertEquals("Test Task", tasks.get(0).getNotificationText());
@@ -47,7 +47,7 @@ class NotificationTaskRepositoryTest {
 
         repository.save(task);
 
-        List<NotificationTask> tasks = repository.findByNotificationDatetimeBefore(LocalDateTime.now());
+        List<NotificationTask> tasks = repository.findByNotificationDatetimeBeforeAndChangedFalse(LocalDateTime.now());
 
         assertTrue(tasks.isEmpty());
     }

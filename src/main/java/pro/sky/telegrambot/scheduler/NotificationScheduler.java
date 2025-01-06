@@ -22,10 +22,16 @@ public class NotificationScheduler {
 
     @Scheduled(fixedRate = 60000)
     public void sendNotifications() {
-        List<NotificationTask> tasks = taskRepository.findByNotificationDatetimeBefore(LocalDateTime.now());
+        // Извлекаем только те задачи, которые имеют время меньше текущего и не были изменены
+        List<NotificationTask> tasks = taskRepository.findByNotificationDatetimeBeforeAndChangedFalse(LocalDateTime.now());
+
         tasks.forEach(task -> {
+            // Отправляем уведомление через Telegram
             telegramBot.execute(new SendMessage(task.getChatId(), task.getNotificationText()));
-            taskRepository.delete(task);
+
+            // Обновляем поле "changed", чтобы задача больше не была отправлена
+            task.setChanged(true);
+            taskRepository.save(task);
         });
     }
 }

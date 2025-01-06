@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="1-create-notification-task-table" author="RomanKuzmin">
@@ -27,7 +27,71 @@
         <createIndex indexName="idx_notification_task_chat_id" tableName="notification_task">
             <column name="chat_id" />
         </createIndex>
-
     </changeSet>
 
+    <changeSet id="2-alter-notification-task-table" author="RomanKuzmin">
+        <!-- Добавляем новое поле -->
+        <addColumn tableName="notification_task">
+            <column name="changed" type="BOOLEAN" defaultValue="false">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+
+        <!-- Удаляем старый индекс -->
+        <dropIndex indexName="idx_notification_task_chat_id" tableName="notification_task" />
+
+        <!-- Создаем новый индекс с учетом нового поля -->
+        <createIndex indexName="idx_notification_task_chat_id_changed" tableName="notification_task">
+            <column name="chat_id" />
+            <column name="changed" />
+        </createIndex>
+    </changeSet>
+    <changeSet id="3-create-telegram-bot-command-table" author="RomanKuzmin">
+        <!-- Создаем таблицу telegram_bot_command -->
+        <createTable tableName="telegram_bot_command">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="command" type="VARCHAR(50)">
+                <constraints nullable="false" />
+            </column>
+            <column name="description" type="TEXT">
+                <constraints nullable="true" />
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <!-- Вставляем стартовые данные -->
+        <insert tableName="telegram_bot_command">
+            <column name="command" value="/start" />
+            <column name="description" value="Приветствуем в нашем боте расписаний &quot;Адептус Астартес *Мастер Титутс*!&quot;&#10;Орден Ультрамаринов Вас! Введите дату и время - и мы напомним Вам о событии!&#10;&#10;/help - доступные комманды&#10;&#10;Формат ввода (это пример - пишите любую дату, время и сообщение):&#10;01.01.2025 20:00 Сделать домашнюю работу" />
+            <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+        </insert>
+        <insert tableName="telegram_bot_command">
+            <column name="command" value="/help" />
+            <column name="description" value="Доступные команды:\n/start - Начало работы с ботом\n/help - Список доступных команд\n/pray - инструкция для Адептус Механикус" />
+            <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+        </insert>
+        <insert tableName="telegram_bot_command">
+            <column name="command" value="/pray" />
+            <column name="description" value="Пришло время славить Бога Машины ! \nБог Машины сам себя не восславит, восславь его ещё раз.\nЗачем мне нужна бренная плоть, у меня нет времени чтобы бегать по нужде каждые полтора дня,\nлучше ещё раз восславить Бога Машины. Я восславляю Бога Машины по три раза в день каждое\nвосславление занимает 20 минут, я живу активной полноценной техножизнью. Я успешен!!!\nИ поэтому я целый день пишу код JPA, а после этого я восславляю Бога Машины.\n..." />
+            <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="4-drop-created-at-column" author="RomanKuzmin">
+        <!-- Удаляем поле created_at из таблицы telegram_bot_command -->
+        <dropColumn tableName="telegram_bot_command" columnName="created_at" />
+    </changeSet>
+
+    <changeSet id="5-replace-newline-constants" author="RomanKuzmin">
+        <!-- SQL-запрос для замены символов '\n' на реальные переходы строки -->
+        <sql>
+            UPDATE telegram_bot_command
+            SET description = REPLACE(description, '\n', E'\n');
+        </sql>
+    </changeSet>
 </databaseChangeLog>
+

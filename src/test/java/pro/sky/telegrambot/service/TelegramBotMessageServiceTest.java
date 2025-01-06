@@ -5,12 +5,25 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import pro.sky.telegrambot.model.NotificationTask;
+import pro.sky.telegrambot.model.TelegramBotCommand;
 import pro.sky.telegrambot.repository.NotificationTaskRepository;
+import pro.sky.telegrambot.repository.TelegramBotCommandRepository;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest
+@AutoConfigureTestDatabase
+@ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class TelegramBotMessageServiceTest {
 
     @InjectMocks
@@ -19,27 +32,38 @@ class TelegramBotMessageServiceTest {
     @Mock
     private NotificationTaskRepository taskRepository;
 
+    @Mock
+    private TelegramBotCommandRepository commandRepository;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void getStartMessage_ShouldReturnCorrectMessage() {
-        String startMessage = messageService.getStartMessage();
-        assertTrue(startMessage.contains("Приветствуем в нашем боте расписаний"));
+    void getCommandMessage_ExistingCommand_ShouldReturnMessage() {
+        String command = "/start";
+        String expectedMessage = "Приветственное сообщение";
+
+        when(commandRepository.findByCommand(command))
+                .thenReturn(Optional.of(new TelegramBotCommand(command, expectedMessage)));
+
+        String result = messageService.getCommandMessage(command);
+
+        assertEquals(expectedMessage, result);
+        verify(commandRepository, times(1)).findByCommand(command);
     }
 
     @Test
-    void getHelpMessage_ShouldReturnCorrectMessage() {
-        String startMessage = messageService.getHelpMessage();
-        assertTrue(startMessage.contains("Доступные команды:"));
-    }
+    void getCommandMessage_UnknownCommand_ShouldReturnError() {
+        String command = "/unknown";
 
-    @Test
-    void getPrayMessage_ShouldReturnCorrectMessage() {
-        String startMessage = messageService.getMechanicMessage();
-        assertTrue(startMessage.contains("Пришло время славить Бога Машины"));
+        when(commandRepository.findByCommand(command)).thenReturn(Optional.empty());
+
+        String result = messageService.getCommandMessage(command);
+
+        assertEquals("Неизвестная команда. Используйте /help для списка доступных команд.", result);
+        verify(commandRepository, times(1)).findByCommand(command);
     }
 
     @Test
@@ -50,10 +74,8 @@ class TelegramBotMessageServiceTest {
         String response = messageService.processMessage(chatId, messageText);
 
         assertTrue(response.contains("Задача успешно сохранена"));
-
         verify(taskRepository, times(1)).save(any(NotificationTask.class));
     }
-
 
     @Test
     void processMessage_InvalidDate_ShouldReturnError() {
@@ -73,7 +95,7 @@ class TelegramBotMessageServiceTest {
 
         String response = messageService.processMessage(chatId, messageText);
 
-        assertTrue(response.contains("Неверный формат"));
+        assertTrue(response.contains("Ошибка обработки даты и времени"));
         verify(taskRepository, never()).save(any(NotificationTask.class));
     }
 }
